@@ -168,9 +168,40 @@ export async function fetchRSSFeed(feedUrl: string): Promise<RSSItem[]> {
 }
 
 export async function syncRSSFeed(feedUrl: string) {
-  // Check database connection first
+  // First, fetch and parse RSS feed (this works without database)
+  console.log(`📡 Fetching RSS feed from: ${feedUrl}`)
+  let items: RSSItem[] = []
+  
+  try {
+    items = await fetchRSSFeed(feedUrl)
+    console.log(`✅ Fetched ${items.length} items from RSS feed`)
+    
+    // Log first item for debugging
+    if (items.length > 0) {
+      console.log(`📝 First item sample:`, {
+        guid: items[0].guid,
+        title: items[0].title?.substring(0, 50),
+        hasAudio: !!items[0].audioUrl,
+        guidLength: items[0].guid?.length || 0,
+      })
+    }
+  } catch (error: any) {
+    console.error('❌ Failed to fetch RSS feed:', error?.message || error)
+    throw new Error(`Failed to fetch RSS feed: ${error?.message || 'Unknown error'}`)
+  }
+
+  // Now check database connection
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL not configured')
+    // Return items we fetched so user can see RSS parsing worked
+    return {
+      synced: [],
+      errors: items.map(item => ({ 
+        guid: item.guid, 
+        error: 'DATABASE_URL not configured - RSS feed was parsed successfully but cannot save to database' 
+      })),
+      total: items.length,
+      items: items.slice(0, 3), // Return first 3 items to show parsing worked
+    }
   }
 
   try {
@@ -179,24 +210,20 @@ export async function syncRSSFeed(feedUrl: string) {
     console.log('✅ Database connection successful')
   } catch (error: any) {
     console.error('❌ Database connection failed:', error?.message || error)
-    throw new Error(`Database connection failed: ${error?.message || 'Unknown error'}`)
+    // Return items we fetched so user can see RSS parsing worked
+    return {
+      synced: [],
+      errors: items.map(item => ({ 
+        guid: item.guid, 
+        error: `Database connection failed: ${error?.message || 'Unknown error'}` 
+      })),
+      total: items.length,
+      items: items.slice(0, 3), // Return first 3 items to show parsing worked
+    }
   }
 
-  console.log(`📡 Fetching RSS feed from: ${feedUrl}`)
-  const items = await fetchRSSFeed(feedUrl)
   const synced: string[] = []
   const errors: Array<{ guid: string; error: string }> = []
-
-  console.log(`✅ Fetched ${items.length} items from RSS feed`)
-  
-  // Log first item for debugging
-  if (items.length > 0) {
-    console.log(`📝 First item sample:`, {
-      guid: items[0].guid,
-      title: items[0].title?.substring(0, 50),
-      hasAudio: !!items[0].audioUrl,
-    })
-  }
 
   for (const item of items) {
     try {

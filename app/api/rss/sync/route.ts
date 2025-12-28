@@ -42,6 +42,11 @@ export async function GET(request: NextRequest) {
       console.log(`✨ Successfully synced: ${result.synced.slice(0, 3).join(', ')}${result.synced.length > 3 ? '...' : ''}`)
     }
 
+    // Check if RSS parsing worked but database is missing
+    const isDatabaseIssue = result.total > 0 && result.synced.length === 0 && 
+                           result.errors.length > 0 && 
+                           result.errors[0]?.error?.includes('DATABASE_URL')
+    
     return NextResponse.json({
       success: result.synced.length > 0,
       synced: result.synced.length,
@@ -49,9 +54,13 @@ export async function GET(request: NextRequest) {
       total: result.total,
       message: result.synced.length > 0 
         ? `Successfully synced ${result.synced.length} of ${result.total} shiurim`
-        : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
+        : isDatabaseIssue
+          ? `RSS feed parsed successfully (${result.total} items found), but DATABASE_URL is not configured`
+          : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
       errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
       syncedGuids: result.synced.slice(0, 5), // Show first 5 synced GUIDs
+      sampleItems: (result as any).items, // Show sample parsed items if database issue
+      rssParsed: result.total > 0, // Indicate RSS parsing worked
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
@@ -92,6 +101,11 @@ export async function POST(request: NextRequest) {
       console.log(`✨ Successfully synced: ${result.synced.slice(0, 3).join(', ')}${result.synced.length > 3 ? '...' : ''}`)
     }
 
+    // Check if RSS parsing worked but database is missing
+    const isDatabaseIssue = result.total > 0 && result.synced.length === 0 && 
+                           result.errors.length > 0 && 
+                           result.errors[0]?.error?.includes('DATABASE_URL')
+    
     return NextResponse.json({
       success: result.synced.length > 0,
       synced: result.synced.length,
@@ -99,9 +113,13 @@ export async function POST(request: NextRequest) {
       total: result.total,
       message: result.synced.length > 0 
         ? `Successfully synced ${result.synced.length} of ${result.total} shiurim`
-        : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
+        : isDatabaseIssue
+          ? `RSS feed parsed successfully (${result.total} items found), but DATABASE_URL is not configured`
+          : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
       errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
       syncedGuids: result.synced.slice(0, 5), // Show first 5 synced GUIDs
+      sampleItems: (result as any).items, // Show sample parsed items if database issue
+      rssParsed: result.total > 0, // Indicate RSS parsing worked
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)

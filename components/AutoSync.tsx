@@ -105,9 +105,26 @@ export default function AutoSync({ hasShiurim }: { hasShiurim: boolean }) {
         
         {syncResult && (
           <div className="text-xs text-red-600 mb-3">
-            <p>Total items: {syncResult.total || 0}</p>
+            <p>Total items found in RSS: {syncResult.total || 0}</p>
             <p>Synced: {syncResult.synced || 0}</p>
             <p>Errors: {syncResult.errors || 0}</p>
+            
+            {syncResult.rssParsed && syncResult.total > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
+                <p className="text-green-800 text-xs font-medium">
+                  ✅ RSS feed parsing successful! Found {syncResult.total} items.
+                </p>
+                {syncResult.sampleItems && syncResult.sampleItems.length > 0 && (
+                  <p className="text-green-700 text-xs mt-1">
+                    Sample: {syncResult.sampleItems[0]?.title?.substring(0, 60)}...
+                  </p>
+                )}
+                <p className="text-green-700 text-xs mt-1">
+                  The issue is only the database connection. Once DATABASE_URL is set, all {syncResult.total} items will sync automatically.
+                </p>
+              </div>
+            )}
+            
             {syncResult.errorDetails && syncResult.errorDetails.length > 0 && (
               <details className="mt-2">
                 <summary className="cursor-pointer">Error details</summary>
