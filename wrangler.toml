@@ -9,6 +9,7 @@ compatibility_date = "2025-12-28"
 
 # Assets configuration for wrangler deploy (Workers mode)
 # This allows "npx wrangler deploy" to work by deploying static assets
+# Cloudflare Pages needs index.html in the build output directory
 [assets]
-directory = ".next/static"
+directory = ".next"
 
