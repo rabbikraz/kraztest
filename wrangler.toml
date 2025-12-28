@@ -4,7 +4,7 @@
 # But the BEST solution is to change it to "npx wrangler pages deploy .next --project-name=rabbi-kraz-shiurim"
 # Or even better: Remove the deploy command entirely (Cloudflare auto-deploys)
 
-name = "rabbi-kraz-shiurim"
+name = "kraztest"
 compatibility_date = "2025-12-28"
 
 # Assets configuration for wrangler deploy (Workers mode)
