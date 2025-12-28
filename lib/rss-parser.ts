@@ -103,35 +103,50 @@ export async function fetchRSSFeed(feedUrl: string): Promise<RSSItem[]> {
       // Extract blurb
       const blurb = extractBlurb(descriptionText)
       
-      // Handle guid - rss-parser may return it as string or object
+      // Handle guid - rss-parser returns it as string for standard RSS feeds
       let guid: string = ''
       
-      // rss-parser can return guid as string or object with value property
-      if (typeof item.guid === 'string') {
-        guid = item.guid.trim()
-      } else if (item.guid) {
-        // Handle object format: { value: 'guid-value' } or similar
-        const guidObj = item.guid as any
-        guid = guidObj.value || guidObj.$?.text || guidObj._ || guidObj.toString() || ''
-        guid = String(guid).trim()
+      // Try to get GUID - rss-parser should return it as string
+      if (item.guid) {
+        if (typeof item.guid === 'string') {
+          guid = item.guid.trim()
+        } else if (typeof item.guid === 'object') {
+          // Sometimes it's an object, extract the value
+          const guidObj = item.guid as any
+          guid = guidObj.value || guidObj.$?.text || guidObj._ || String(guidObj) || ''
+          guid = String(guid).trim()
+        } else {
+          guid = String(item.guid).trim()
+        }
       }
       
-      // Fallback to id or link if guid is missing
-      if (!guid) {
+      // Fallback: use id or link
+      if (!guid || guid.length < 3) {
         guid = (item.id || item.link || '').toString().trim()
       }
       
-      // Last resort: generate a stable GUID from title and pubDate
-      if (!guid) {
+      // Last resort: extract from link URL or generate from title/pubDate
+      if (!guid || guid.length < 3) {
+        // Try to extract ID from link (e.g., episodes/From-Majorca-to-Algeria-The-Genius-of-the-Rashbatz-e3cpqkj)
+        if (item.link) {
+          const linkMatch = item.link.match(/episodes\/([^\/]+)$/)
+          if (linkMatch) {
+            guid = linkMatch[1]
+          }
+        }
+      }
+      
+      // Final fallback: generate stable GUID
+      if (!guid || guid.length < 3) {
         const titleHash = item.title ? btoa(item.title).substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') : ''
         const dateHash = item.pubDate ? new Date(item.pubDate).getTime().toString(36) : ''
         guid = `${titleHash}-${dateHash}`.replace(/[^a-zA-Z0-9-]/g, '')
         console.warn(`Generated GUID for item: ${item.title} -> ${guid}`)
       }
       
-      // Ensure GUID is not empty
-      if (!guid || guid.length < 3) {
-        guid = `guid-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+      // Log if we had to generate GUID (shouldn't happen with proper RSS feed)
+      if (guid.includes('Generated') || guid.length < 10) {
+        console.warn(`⚠️  Item "${item.title}" has suspicious GUID: ${guid}`)
       }
       
       return {
@@ -161,32 +176,49 @@ export async function syncRSSFeed(feedUrl: string) {
   try {
     // Test database connection
     await prisma.$connect()
+    console.log('✅ Database connection successful')
   } catch (error: any) {
-    console.error('Database connection failed:', error?.message || error)
+    console.error('❌ Database connection failed:', error?.message || error)
     throw new Error(`Database connection failed: ${error?.message || 'Unknown error'}`)
   }
 
+  console.log(`📡 Fetching RSS feed from: ${feedUrl}`)
   const items = await fetchRSSFeed(feedUrl)
   const synced: string[] = []
   const errors: Array<{ guid: string; error: string }> = []
 
-  console.log(`Starting sync of ${items.length} items from RSS feed`)
+  console.log(`✅ Fetched ${items.length} items from RSS feed`)
+  
+  // Log first item for debugging
+  if (items.length > 0) {
+    console.log(`📝 First item sample:`, {
+      guid: items[0].guid,
+      title: items[0].title?.substring(0, 50),
+      hasAudio: !!items[0].audioUrl,
+    })
+  }
 
   for (const item of items) {
     try {
       // Validate required fields
-      if (!item.guid) {
-        errors.push({ guid: item.title || 'unknown', error: 'Missing GUID' })
+      if (!item.guid || item.guid.length < 3) {
+        const errorMsg = `Invalid GUID: ${item.guid || 'empty'}`
+        console.error(`❌ ${errorMsg} for item: ${item.title}`)
+        errors.push({ guid: item.title || 'unknown', error: errorMsg })
         continue
       }
 
-      if (!item.title) {
-        errors.push({ guid: item.guid, error: 'Missing title' })
+      if (!item.title || item.title.trim().length === 0) {
+        const errorMsg = 'Missing or empty title'
+        console.error(`❌ ${errorMsg} for GUID: ${item.guid}`)
+        errors.push({ guid: item.guid, error: errorMsg })
         continue
       }
 
-      if (!item.audioUrl) {
-        errors.push({ guid: item.guid, error: 'Missing audioUrl' })
+      if (!item.audioUrl || item.audioUrl.trim().length === 0) {
+        const errorMsg = 'Missing or empty audioUrl'
+        console.error(`❌ ${errorMsg} for item: ${item.title} (${item.guid})`)
+        errors.push({ guid: item.guid, error: errorMsg })
         continue
       }
 
@@ -211,6 +243,9 @@ export async function syncRSSFeed(feedUrl: string) {
           },
         })
         synced.push(item.guid)
+        if (synced.length <= 3) {
+          console.log(`🔄 Updated: ${item.title.substring(0, 50)}`)
+        }
       } else {
         // Create new shiur
         await prisma.shiur.create({
@@ -227,6 +262,9 @@ export async function syncRSSFeed(feedUrl: string) {
           },
         })
         synced.push(item.guid)
+        if (synced.length <= 3) {
+          console.log(`✨ Created: ${item.title.substring(0, 50)}`)
+        }
       }
     } catch (error: any) {
       const errorMsg = error?.message || String(error)
