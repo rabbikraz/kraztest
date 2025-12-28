@@ -86,12 +86,12 @@ export async function fetchRSSFeed(feedUrl: string): Promise<RSSItem[]> {
       return []
     }
 
-    return feed.items.map((item) => {
+    return feed.items.map((item: any) => {
       const enclosure = item.enclosure
       const audioUrl = enclosure?.url || item.link || ''
       
       // Extract duration from itunes:duration or content
-      let duration = item.itunes?.duration || ''
+      let duration = (item.itunes as any)?.duration || ''
       
       // Get full description with HTML for source sheet extraction
       const fullDescription = item.content || item['content:encoded'] || item.description || ''
@@ -123,7 +123,7 @@ export async function fetchRSSFeed(feedUrl: string): Promise<RSSItem[]> {
       
       // Last resort: generate a stable GUID from title and pubDate
       if (!guid) {
-        const titleHash = item.title ? Buffer.from(item.title).toString('base64').substring(0, 20) : ''
+        const titleHash = item.title ? btoa(item.title).substring(0, 20).replace(/[^a-zA-Z0-9]/g, '') : ''
         const dateHash = item.pubDate ? new Date(item.pubDate).getTime().toString(36) : ''
         guid = `${titleHash}-${dateHash}`.replace(/[^a-zA-Z0-9-]/g, '')
         console.warn(`Generated GUID for item: ${item.title} -> ${guid}`)

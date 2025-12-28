@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { syncRSSFeed } from '@/lib/rss-parser'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,16 +15,29 @@ export async function GET() {
       }, { status: 500 })
     }
 
-    const feedUrl = process.env.RSS_FEED_URL || 'https://anchor.fm/s/d89491c4/podcast/rss'
+    // Check if we need to sync (if database is empty)
+    const shiurCount = await prisma.shiur.count()
     
-    // Run sync in background (don't wait for it to complete)
-    syncRSSFeed(feedUrl).catch((error) => {
-      console.error('Background RSS sync failed:', error)
-    })
+    // Only sync if database is empty or if forced
+    if (shiurCount === 0) {
+      const feedUrl = process.env.RSS_FEED_URL || 'https://anchor.fm/s/d89491c4/podcast/rss'
+      
+      // Run sync in background (don't wait for it to complete)
+      syncRSSFeed(feedUrl).catch((error) => {
+        console.error('Background RSS sync failed:', error)
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'RSS sync started in background (database was empty)',
+        shiurCount: 0,
+      })
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'RSS sync started in background',
+      message: 'Database already has shiurim, skipping auto-sync',
+      shiurCount,
     })
   } catch (error: any) {
     console.error('Error starting RSS sync:', error)
