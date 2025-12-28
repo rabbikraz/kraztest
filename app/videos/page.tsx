@@ -69,7 +69,7 @@ async function getVideos() {
       const batchIds = allVideoIds.slice(i, i + 50)
       const videoIds = batchIds.join(',')
 
-      // Get detailed video information for this batch
+      // Get detailed video information for this batch (include liveBroadcastContent in snippet)
       const videoDetailsResponse = await fetch(
         `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`,
         { next: { revalidate: 3600 } }
@@ -85,7 +85,7 @@ async function getVideos() {
       allVideos.push(...videoDetailsData.items)
     }
 
-    // Format all videos and mark them as shiurim or shorts
+    // Format all videos and categorize them
     const videos = allVideos
       .map((video: any) => {
         const duration = video.contentDetails.duration
@@ -102,8 +102,21 @@ async function getVideos() {
           durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`
         }
 
-        // Shorts are videos shorter than 3 minutes (180 seconds)
-        const isShort = totalSeconds < 180
+        // Check if it's a live stream
+        const liveBroadcastContent = video.snippet.liveBroadcastContent || 'none'
+        const isLive = liveBroadcastContent === 'live' || liveBroadcastContent === 'upcoming'
+        
+        // Check if it's a Short/Reel (duration < 60 seconds or has #Shorts in title)
+        const title = video.snippet.title || ''
+        const isReel = totalSeconds <= 60 || title.toLowerCase().includes('#shorts') || title.toLowerCase().includes('shorts')
+        
+        // Determine category
+        let category = 'video'
+        if (isLive) {
+          category = 'live'
+        } else if (isReel) {
+          category = 'reel'
+        }
         
         return {
           id: video.id,
@@ -114,7 +127,8 @@ async function getVideos() {
           duration: durationStr,
           viewCount: parseInt(video.statistics?.viewCount || '0'),
           videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
-          type: isShort ? 'short' : 'shiur',
+          category: category,
+          liveBroadcastContent: liveBroadcastContent,
         }
       })
       .sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
@@ -129,10 +143,35 @@ async function getVideos() {
 export default async function VideosPage({
   searchParams,
 }: {
-  searchParams: { page?: string }
+  searchParams: { page?: string; category?: string }
 }) {
   const allVideos = await getVideos()
   const page = parseInt(searchParams.page || '1', 10)
+  const selectedCategory = searchParams.category || 'video'
+
+  // Split videos into categories
+  const videos = allVideos.filter((v: any) => v.category === 'video')
+  const lives = allVideos.filter((v: any) => v.category === 'live')
+  const reels = allVideos.filter((v: any) => v.category === 'reel')
+
+  // Get the selected category's videos
+  const getCategoryVideos = () => {
+    switch (selectedCategory) {
+      case 'live':
+        return lives
+      case 'reel':
+        return reels
+      default:
+        return videos
+    }
+  }
+
+  const categoryVideos = getCategoryVideos()
+  const categoryCounts = {
+    video: videos.length,
+    live: lives.length,
+    reel: reels.length,
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50/50">
@@ -142,9 +181,43 @@ export default async function VideosPage({
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-2">
             Videos
           </h1>
-          <p className="text-muted-foreground">
-            Watch shiurim and shorts on YouTube ({allVideos.length} videos)
+          <p className="text-muted-foreground mb-6">
+            Watch shiurim, live streams, and reels on YouTube
           </p>
+
+          {/* Category Tabs */}
+          <div className="flex gap-2 border-b border-gray-200">
+            <a
+              href="/videos?category=video&page=1"
+              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                selectedCategory === 'video'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-primary'
+              }`}
+            >
+              Videos ({categoryCounts.video})
+            </a>
+            <a
+              href="/videos?category=live&page=1"
+              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                selectedCategory === 'live'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-primary'
+              }`}
+            >
+              Lives ({categoryCounts.live})
+            </a>
+            <a
+              href="/videos?category=reel&page=1"
+              className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+                selectedCategory === 'reel'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-primary'
+              }`}
+            >
+              Reels ({categoryCounts.reel})
+            </a>
+          </div>
         </div>
 
         {allVideos.length === 0 ? (
@@ -165,8 +238,12 @@ export default async function VideosPage({
               <ExternalLink className="w-4 h-4" />
             </a>
           </div>
+        ) : categoryVideos.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
+            <p className="text-gray-600">No {selectedCategory === 'live' ? 'live streams' : selectedCategory === 'reel' ? 'reels' : 'videos'} available.</p>
+          </div>
         ) : (
-          <VideosGrid initialVideos={allVideos} currentPage={page} />
+          <VideosGrid initialVideos={categoryVideos} currentPage={page} category={selectedCategory} />
         )}
       </main>
     </div>

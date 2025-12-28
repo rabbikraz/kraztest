@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ExternalLink, Play, Clock, Eye, Calendar } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
-import VideoFilters from './VideoFilters'
 
 interface VideosGridProps {
   initialVideos: any[]
   currentPage?: number
+  category?: string
 }
 
 const ITEMS_PER_PAGE = 18
@@ -24,9 +24,9 @@ function formatViewCount(count: number): string {
   return count.toString()
 }
 
-export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGridProps) {
+export default function VideosGrid({ initialVideos, currentPage = 1, category = 'video' }: VideosGridProps) {
   const router = useRouter()
-  const [filteredVideos, setFilteredVideos] = useState(initialVideos)
+  const searchParams = useSearchParams()
   const [page, setPage] = useState(currentPage)
   
   // Update page when currentPage prop changes
@@ -34,27 +34,26 @@ export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGri
     setPage(currentPage)
   }, [currentPage])
   
-  // Reset to page 1 when filter changes
+  // Reset to page 1 if page is out of bounds
   useEffect(() => {
-    if (page > 1 && filteredVideos.length > 0) {
-      const totalPages = Math.ceil(filteredVideos.length / ITEMS_PER_PAGE)
+    if (page > 1 && initialVideos.length > 0) {
+      const totalPages = Math.ceil(initialVideos.length / ITEMS_PER_PAGE)
       if (page > totalPages) {
         setPage(1)
-        router.replace('/videos?page=1')
+        const currentCategory = searchParams.get('category') || 'video'
+        router.replace(`/videos?category=${currentCategory}&page=1`)
       }
     }
-  }, [filteredVideos, page, router])
+  }, [initialVideos, page, router, searchParams])
   
-  const totalPages = Math.ceil(filteredVideos.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(initialVideos.length / ITEMS_PER_PAGE)
   const startIndex = (page - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedVideos = filteredVideos.slice(startIndex, endIndex)
+  const paginatedVideos = initialVideos.slice(startIndex, endIndex)
 
   return (
     <>
-      <VideoFilters videos={initialVideos} onFilterChange={setFilteredVideos} />
-      
-      {filteredVideos.length === 0 ? (
+      {initialVideos.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
           <p className="text-gray-600">No videos match the selected filter.</p>
         </div>
@@ -90,9 +89,14 @@ export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGri
                   <Clock className="w-3 h-3" />
                   {video.duration}
                 </div>
-                {video.type === 'short' && (
+                {video.category === 'live' && (
                   <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-semibold">
-                    SHORTS
+                    {video.liveBroadcastContent === 'live' ? 'LIVE' : 'UPCOMING'}
+                  </div>
+                )}
+                {video.category === 'reel' && (
+                  <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded font-semibold">
+                    REELS
                   </div>
                 )}
               </div>
@@ -129,7 +133,7 @@ export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGri
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
               <Link
-                href={`/videos?page=${Math.max(1, page - 1)}`}
+                href={`/videos?category=${category}&page=${Math.max(1, page - 1)}`}
                 className={`px-4 py-2 rounded-lg border transition-colors ${
                   page === 1
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
@@ -155,7 +159,7 @@ export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGri
                   return (
                     <Link
                       key={pageNum}
-                      href={`/videos?page=${pageNum}`}
+                      href={`/videos?category=${category}&page=${pageNum}`}
                       className={`px-4 py-2 rounded-lg border transition-colors ${
                         pageNum === page
                           ? 'bg-primary text-white border-primary'
@@ -169,7 +173,7 @@ export default function VideosGrid({ initialVideos, currentPage = 1 }: VideosGri
               </div>
               
               <Link
-                href={`/videos?page=${Math.min(totalPages, page + 1)}`}
+                href={`/videos?category=${category}&page=${Math.min(totalPages, page + 1)}`}
                 className={`px-4 py-2 rounded-lg border transition-colors ${
                   page === totalPages
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
