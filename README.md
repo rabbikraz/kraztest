@@ -158,9 +158,10 @@ rabbikraz/
    - Navigate to **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
    - Connect your GitHub repository
    - Configure build settings:
-     - **Framework preset:** Next.js (Static HTML Export) or Custom
+     - **Framework preset:** Next.js
      - **Build command:** `npm run build:cloudflare`
-     - **Build output directory:** `.vercel/output/static`
+     - **Build output directory:** `.next`
+     - **Node version:** 18 or higher
      - **Root directory:** `./` (or leave empty)
    - Click **Save and Deploy**
 

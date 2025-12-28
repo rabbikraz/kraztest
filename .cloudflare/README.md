@@ -5,7 +5,8 @@
 Configure these in your Cloudflare Pages dashboard:
 
 - **Build command:** `npm run build:cloudflare`
-- **Build output directory:** `.vercel/output/static`
+- **Build output directory:** `.next`
+- **Framework:** Next.js
 - **Root directory:** `./` (or leave empty)
 
 ## Environment Variables

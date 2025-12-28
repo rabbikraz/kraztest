@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "build:cloudflare": "prisma generate && next build && npx @cloudflare/next-on-pages",
+    "build:cloudflare": "prisma generate && next build",
+    "deploy:cloudflare": "npm run build:cloudflare && npx wrangler pages deploy .next --project-name=rabbi-kraz-shiurim",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
@@ -42,7 +43,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.12.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.10.6",
     "@types/react": "^18.2.46",
@@ -53,7 +53,7 @@
     "prisma": "^5.7.1",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3",
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.83.0"
   }
 }
 

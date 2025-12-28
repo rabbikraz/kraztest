@@ -1,11 +1,12 @@
 # Cloudflare Pages configuration for Next.js
-# This file is optional - Cloudflare Pages can be configured via dashboard
-# For CLI deployment: npx wrangler pages deploy .vercel/output/static --project-name=rabbi-kraz-shiurim
+# For Cloudflare Pages dashboard deployment, configure:
+# - Build command: npm run build:cloudflare
+# - Build output directory: .next
+# - Framework: Next.js
 
 name = "rabbi-kraz-shiurim"
 compatibility_date = "2025-12-28"
 
-# Build output directory (set in Cloudflare Pages dashboard)
-# Build command: npm run build:cloudflare
-# Output directory: .vercel/output/static
+# Note: Cloudflare Pages with Next.js requires the Next.js runtime
+# The .next directory contains the built application
 
