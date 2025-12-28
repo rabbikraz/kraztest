@@ -8,6 +8,9 @@ Configure these in your Cloudflare Pages dashboard:
 - **Build output directory:** `.next`
 - **Framework:** Next.js
 - **Root directory:** `./` (or leave empty)
+- **Deploy command:** LEAVE EMPTY (do not set a deploy command)
+
+⚠️ **IMPORTANT:** Do NOT set a deploy command in Cloudflare Pages. The build output will be automatically deployed. If you see a deploy command configured (like `npx wrangler deploy`), remove it.
 
 ## Environment Variables
 
@@ -20,13 +23,4 @@ Set these in Cloudflare Pages → Settings → Environment variables:
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
 - `NEXT_PUBLIC_BASE_URL`
-
-## CLI Deployment (Optional)
-
-If deploying via CLI:
-
-```bash
-npm run build:cloudflare
-npx wrangler pages deploy .vercel/output/static --project-name=rabbi-kraz-shiurim
-```
 

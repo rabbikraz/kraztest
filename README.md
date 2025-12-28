@@ -161,8 +161,10 @@ rabbikraz/
      - **Framework preset:** Next.js
      - **Build command:** `npm run build:cloudflare`
      - **Build output directory:** `.next`
+     - **Deploy command:** LEAVE EMPTY (do not set this)
      - **Node version:** 18 or higher
      - **Root directory:** `./` (or leave empty)
+   - ⚠️ **IMPORTANT:** Make sure the "Deploy command" field is empty. Cloudflare Pages automatically deploys the build output.
    - Click **Save and Deploy**
 
 4. **Configure Environment Variables in Cloudflare:**
@@ -238,8 +240,12 @@ rabbikraz/
 **Build failures:**
 - Check build logs in Cloudflare Pages dashboard
 - Ensure all environment variables are set
-- Verify `@cloudflare/next-on-pages` is installed: `npm install --save-dev @cloudflare/next-on-pages`
 - Make sure build command is `npm run build:cloudflare`
+- Verify the "Deploy command" field is empty (should not be set)
+
+**Deployment errors:**
+- If you see "Missing entry-point to Worker script" error, remove any deploy command from Cloudflare Pages settings
+- Cloudflare Pages automatically deploys the build output - no deploy command needed
 
 ## Contributing
 
