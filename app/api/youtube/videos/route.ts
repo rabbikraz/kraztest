@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
+import { getYouTubeApiKey, YOUTUBE_CHANNEL_ID } from '@/lib/youtube-config'
 
-const YOUTUBE_CHANNEL_ID = 'UCMrMvXraTLhAtpb0JZQOKhQ'
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
+const YOUTUBE_API_KEY = getYouTubeApiKey()
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'your-youtube-api-key-here') {
+    if (!YOUTUBE_API_KEY) {
       console.error('YouTube API key not configured')
       return NextResponse.json(
         { error: 'YouTube API key not configured' },

@@ -4,6 +4,7 @@ import { formatDate, formatDuration } from '@/lib/utils'
 import Header from '@/components/Header'
 import PlayButton from '@/components/PlayButton'
 import PlatformGrid from '@/components/PlatformGrid'
+import AutoSync from '@/components/AutoSync'
 import { Calendar, Clock, Info } from 'lucide-react'
 
 // Mark as dynamic to avoid build-time database access
@@ -55,6 +56,7 @@ export default async function Home() {
               Latest Shiurim
             </h2>
           </div>
+          <AutoSync hasShiurim={shiurim.length > 0} />
           {shiurim.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
               <p className="text-gray-600 mb-4">No shiurim available yet.</p>
