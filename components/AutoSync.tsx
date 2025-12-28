@@ -64,6 +64,8 @@ export default function AutoSync({ hasShiurim }: { hasShiurim: boolean }) {
   }
 
   if (!hasShiurim && error) {
+    const isDatabaseError = error.includes('DATABASE_URL')
+    
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <p className="text-red-800 text-sm font-medium mb-2">
@@ -72,6 +74,35 @@ export default function AutoSync({ hasShiurim }: { hasShiurim: boolean }) {
         <p className="text-red-600 text-xs mb-3">
           {error}
         </p>
+        
+        {isDatabaseError && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+            <p className="text-yellow-800 text-xs font-medium mb-2">
+              ⚠️ Database Not Configured
+            </p>
+            <p className="text-yellow-700 text-xs mb-2">
+              You need to set the <code className="bg-yellow-100 px-1 rounded">DATABASE_URL</code> environment variable.
+            </p>
+            <p className="text-yellow-700 text-xs mb-2">
+              <strong>For Supabase:</strong> Get your connection string from your Supabase project settings.
+            </p>
+            <p className="text-yellow-700 text-xs">
+              <strong>For other providers:</strong> Use a PostgreSQL connection string in the format:
+            </p>
+            <code className="block text-xs bg-yellow-100 p-2 rounded mt-2 break-all">
+              postgresql://user:password@host:port/database?sslmode=require
+            </code>
+            <a
+              href="/api/diagnostic"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-xs text-yellow-800 hover:text-yellow-900 underline"
+            >
+              Check system status →
+            </a>
+          </div>
+        )}
+        
         {syncResult && (
           <div className="text-xs text-red-600 mb-3">
             <p>Total items: {syncResult.total || 0}</p>
