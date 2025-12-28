@@ -137,10 +137,10 @@ export default function AutoSync({ hasShiurim }: { hasShiurim: boolean }) {
         )}
             <div className="flex flex-col sm:flex-row gap-2 mt-3">
               <a
-                href="/setup-guide"
-                className="inline-flex items-center justify-center gap-2 text-sm bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
+                href="/configure"
+                className="inline-flex items-center justify-center gap-2 text-sm bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors font-medium"
               >
-                View Setup Guide →
+                🔧 Configure Database (Step-by-Step) →
               </a>
               <a
                 href="/api/rss/sync"
