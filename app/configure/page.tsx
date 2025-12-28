@@ -95,13 +95,20 @@ export default function ConfigurePage() {
                     <div className="bg-white rounded p-3 mb-3">
                       <p className="text-xs text-gray-600 mb-1">Your connection string will look like:</p>
                       <code className="text-xs break-all bg-gray-100 p-2 rounded block">
-                        postgresql://postgres.xxxxx:[YOUR-PASSWORD]@xxxxx.pooler.supabase.com:6543/postgres?pgbouncer=true
+                        postgresql://postgres:[YOUR-PASSWORD]@db.xxxxx.supabase.co:5432/postgres
                       </code>
                     </div>
 
-                    <p className="text-sm text-blue-700 font-medium">
-                      ⚠️ IMPORTANT: Replace <code className="bg-blue-100 px-1 rounded">[YOUR-PASSWORD]</code> with the password you created!
-                    </p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+                      <p className="text-sm text-yellow-800 font-medium mb-2">
+                        ⚠️ CRITICAL STEPS:
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 text-xs text-yellow-800">
+                        <li>Replace <code className="bg-yellow-100 px-1 rounded">[YOUR-PASSWORD]</code> with your actual database password</li>
+                        <li>Add <code className="bg-yellow-100 px-1 rounded">?sslmode=require</code> to the end of the connection string</li>
+                        <li>Final format: <code className="bg-yellow-100 px-1 rounded text-xs">postgresql://postgres:YOUR_PASSWORD@db.xxxxx.supabase.co:5432/postgres?sslmode=require</code></li>
+                      </ol>
+                    </div>
                   </div>
                 </section>
               )}
