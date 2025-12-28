@@ -28,20 +28,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    console.log(`🔄 Starting RSS sync from: ${url}`)
     const result = await syncRSSFeed(url)
 
-    // Log first few errors for debugging
+    // Log results
+    console.log(`✅ Sync complete: ${result.synced.length} synced, ${result.errors.length} errors out of ${result.total} total`)
+    
     if (result.errors.length > 0) {
-      console.error('Sync errors (first 5):', result.errors.slice(0, 5))
+      console.error('❌ Sync errors (first 5):', result.errors.slice(0, 5))
+    }
+    
+    if (result.synced.length > 0) {
+      console.log(`✨ Successfully synced: ${result.synced.slice(0, 3).join(', ')}${result.synced.length > 3 ? '...' : ''}`)
     }
 
     return NextResponse.json({
-      success: true,
+      success: result.synced.length > 0,
       synced: result.synced.length,
       errors: result.errors.length,
       total: result.total,
-      message: `Synced ${result.synced.length} of ${result.total} shiurim`,
+      message: result.synced.length > 0 
+        ? `Successfully synced ${result.synced.length} of ${result.total} shiurim`
+        : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
       errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
+      syncedGuids: result.synced.slice(0, 5), // Show first 5 synced GUIDs
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
@@ -68,20 +78,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log(`🔄 Starting RSS sync from: ${url}`)
     const result = await syncRSSFeed(url)
 
-    // Log first few errors for debugging
+    // Log results
+    console.log(`✅ Sync complete: ${result.synced.length} synced, ${result.errors.length} errors out of ${result.total} total`)
+    
     if (result.errors.length > 0) {
-      console.error('Sync errors (first 5):', result.errors.slice(0, 5))
+      console.error('❌ Sync errors (first 5):', result.errors.slice(0, 5))
+    }
+    
+    if (result.synced.length > 0) {
+      console.log(`✨ Successfully synced: ${result.synced.slice(0, 3).join(', ')}${result.synced.length > 3 ? '...' : ''}`)
     }
 
     return NextResponse.json({
-      success: true,
+      success: result.synced.length > 0,
       synced: result.synced.length,
       errors: result.errors.length,
       total: result.total,
-      message: `Synced ${result.synced.length} of ${result.total} shiurim`,
+      message: result.synced.length > 0 
+        ? `Successfully synced ${result.synced.length} of ${result.total} shiurim`
+        : `Failed to sync: ${result.errors.length} errors out of ${result.total} items`,
       errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
+      syncedGuids: result.synced.slice(0, 5), // Show first 5 synced GUIDs
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
