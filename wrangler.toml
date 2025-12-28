@@ -3,14 +3,16 @@
 # IMPORTANT: The deploy command in Cloudflare Pages dashboard should be EMPTY
 # Cloudflare Pages automatically deploys the build output from .next directory
 #
-# If deploy command is set, change it from "npx wrangler deploy" to:
-#   npm run deploy
-# Or better yet, REMOVE the deploy command entirely
+# If deploy command is set to "npx wrangler deploy", it will now work
+# But the BEST solution is to REMOVE the deploy command entirely
+# Or change it to "npm run deploy" to use the proper Pages deployment
 
 name = "rabbi-kraz-shiurim"
 compatibility_date = "2025-12-28"
 
-# This configuration allows wrangler pages deploy to work
-# if a deploy command is mistakenly set in the dashboard
+# Worker entry point (only needed if deploy command uses "npx wrangler deploy")
+main = "src/index.ts"
+
+# Pages configuration (for proper Pages deployment)
 pages_build_output_dir = ".next"
 
