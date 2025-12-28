@@ -1,7 +1,8 @@
-# PowerShell script to set DATABASE_URL and YOUTUBE_API_KEY in Netlify
+# PowerShell script to set Supabase and other environment variables in Netlify
 # Run this script after authenticating with Netlify CLI
 
-$DATABASE_URL = "postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres"
+$NEXT_PUBLIC_SUPABASE_URL = "https://tjywoiawsxrrepthgkqd.supabase.co"
+$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = "sb_publishable_pRItmXYYLxWRHCyD0mMbqA_QdQIbqcS"
 $YOUTUBE_API_KEY = "AIzaSyDufIjgKWTjSY6e6YnLfuhHVC5dAwtJPLg"
 $RSS_FEED_URL = "https://anchor.fm/s/d89491c4/podcast/rss"
 
@@ -38,13 +39,22 @@ Write-Host "✅ Found site: $($siteInfo.siteId)" -ForegroundColor Green
 $success = $true
 $errors = @()
 
-Write-Host "Setting DATABASE_URL environment variable..." -ForegroundColor Cyan
-$result1 = netlify env:set DATABASE_URL "$DATABASE_URL" --context production 2>&1
+Write-Host "Setting NEXT_PUBLIC_SUPABASE_URL environment variable..." -ForegroundColor Cyan
+$result1 = netlify env:set NEXT_PUBLIC_SUPABASE_URL "$NEXT_PUBLIC_SUPABASE_URL" --context production 2>&1
 if ($LASTEXITCODE -ne 0) {
     $success = $false
-    $errors += "DATABASE_URL: $result1"
+    $errors += "NEXT_PUBLIC_SUPABASE_URL: $result1"
 } else {
-    Write-Host "✅ DATABASE_URL set successfully!" -ForegroundColor Green
+    Write-Host "✅ NEXT_PUBLIC_SUPABASE_URL set successfully!" -ForegroundColor Green
+}
+
+Write-Host "Setting NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY environment variable..." -ForegroundColor Cyan
+$result1b = netlify env:set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" --context production 2>&1
+if ($LASTEXITCODE -ne 0) {
+    $success = $false
+    $errors += "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: $result1b"
+} else {
+    Write-Host "✅ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY set successfully!" -ForegroundColor Green
 }
 
 Write-Host "Setting YOUTUBE_API_KEY environment variable..." -ForegroundColor Cyan
@@ -85,7 +95,8 @@ if ($success) {
     Write-Host "2. Select your site" -ForegroundColor White
     Write-Host "3. Site settings → Environment variables" -ForegroundColor White
     Write-Host "4. Add these variables:" -ForegroundColor White
-    Write-Host "   DATABASE_URL = $DATABASE_URL" -ForegroundColor Cyan
+    Write-Host "   NEXT_PUBLIC_SUPABASE_URL = $NEXT_PUBLIC_SUPABASE_URL" -ForegroundColor Cyan
+    Write-Host "   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" -ForegroundColor Cyan
     Write-Host "   YOUTUBE_API_KEY = $YOUTUBE_API_KEY" -ForegroundColor Cyan
     Write-Host "   RSS_FEED_URL = $RSS_FEED_URL" -ForegroundColor Cyan
 }

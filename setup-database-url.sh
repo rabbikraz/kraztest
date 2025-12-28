@@ -1,8 +1,9 @@
 #!/bin/bash
-# Bash script to set DATABASE_URL and YOUTUBE_API_KEY in Netlify
+# Bash script to set Supabase and other environment variables in Netlify
 # Run this script after authenticating with Netlify CLI
 
-DATABASE_URL="postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres"
+NEXT_PUBLIC_SUPABASE_URL="https://tjywoiawsxrrepthgkqd.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY="sb_publishable_pRItmXYYLxWRHCyD0mMbqA_QdQIbqcS"
 YOUTUBE_API_KEY="AIzaSyDufIjgKWTjSY6e6YnLfuhHVC5dAwtJPLg"
 RSS_FEED_URL="https://anchor.fm/s/d89491c4/podcast/rss"
 
@@ -36,12 +37,20 @@ echo "✅ Found site: $SITE_ID"
 SUCCESS=true
 ERRORS=()
 
-echo "Setting DATABASE_URL environment variable..."
-if netlify env:set DATABASE_URL "$DATABASE_URL" --context production; then
-    echo "✅ DATABASE_URL set successfully!"
+echo "Setting NEXT_PUBLIC_SUPABASE_URL environment variable..."
+if netlify env:set NEXT_PUBLIC_SUPABASE_URL "$NEXT_PUBLIC_SUPABASE_URL" --context production; then
+    echo "✅ NEXT_PUBLIC_SUPABASE_URL set successfully!"
 else
     SUCCESS=false
-    ERRORS+=("DATABASE_URL failed")
+    ERRORS+=("NEXT_PUBLIC_SUPABASE_URL failed")
+fi
+
+echo "Setting NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY environment variable..."
+if netlify env:set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" --context production; then
+    echo "✅ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY set successfully!"
+else
+    SUCCESS=false
+    ERRORS+=("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY failed")
 fi
 
 echo "Setting YOUTUBE_API_KEY environment variable..."
@@ -80,7 +89,8 @@ else
     echo "2. Select your site"
     echo "3. Site settings → Environment variables"
     echo "4. Add these variables:"
-    echo "   DATABASE_URL = $DATABASE_URL"
+    echo "   NEXT_PUBLIC_SUPABASE_URL = $NEXT_PUBLIC_SUPABASE_URL"
+    echo "   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY"
     echo "   YOUTUBE_API_KEY = $YOUTUBE_API_KEY"
     echo "   RSS_FEED_URL = $RSS_FEED_URL"
 fi

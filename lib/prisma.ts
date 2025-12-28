@@ -1,17 +1,38 @@
 import { PrismaClient } from '@prisma/client'
 
-// Direct connection string in Supabase format
-// Format: postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
-const FALLBACK_DATABASE_URL =
-  'postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres'
-
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Ensure DATABASE_URL is always available even if env vars are missing
+// Extract project ID from Supabase URL
+function getSupabaseProjectId(): string | null {
+  // Try NEXT_PUBLIC_SUPABASE_URL first
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_DATABASE_URL
+  if (supabaseUrl) {
+    const match = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.(co|com)/)
+    if (match) return match[1]
+  }
+  return null
+}
+
+// Generate DATABASE_URL from Supabase environment variables
+function generateDatabaseUrl(): string {
+  const projectId = getSupabaseProjectId()
+  const password = process.env.SUPABASE_DB_PASSWORD || '93mMKqR8xfQ3jPM!'
+  
+  if (projectId) {
+    // Use pooler connection for serverless (recommended for Netlify)
+    return `postgresql://postgres.${projectId}:${password}@${projectId}.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true`
+  }
+  
+  // Fallback: use known project ID from NEXT_PUBLIC_SUPABASE_URL
+  // Project ID: tjywoiawsxrrepthgkqd
+  return 'postgresql://postgres.tjywoiawsxrrepthgkqd:93mMKqR8xfQ3jPM!@tjywoiawsxrrepthgkqd.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true'
+}
+
+// Ensure DATABASE_URL is always available
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = FALLBACK_DATABASE_URL
+  process.env.DATABASE_URL = generateDatabaseUrl()
 }
 
 // Fix connection string at runtime (same logic as setup-env.js)
@@ -21,13 +42,8 @@ function fixConnectionString() {
   const dbUrl = process.env.DATABASE_URL
   if (!dbUrl.startsWith('postgres')) return
   
-  // Extract project ID from SUPABASE_DATABASE_URL
-  let projectId = null
-  const supabaseUrl = process.env.SUPABASE_DATABASE_URL
-  if (supabaseUrl) {
-    const match = supabaseUrl.match(/https?:\/\/([^.]+)\.supabase\.co/)
-    if (match) projectId = match[1]
-  }
+  // Extract project ID from Supabase URL (prefer NEXT_PUBLIC_SUPABASE_URL)
+  let projectId = getSupabaseProjectId()
   
   try {
     // Check if it's a Supabase connection
@@ -135,7 +151,7 @@ function fixConnectionString() {
 fixConnectionString()
 
 // Get the final connection string (after fixing)
-const finalDatabaseUrl = process.env.DATABASE_URL || FALLBACK_DATABASE_URL
+const finalDatabaseUrl = process.env.DATABASE_URL || generateDatabaseUrl()
 
 // Log connection string (mask password for security)
 const maskedUrl = finalDatabaseUrl.replace(/:([^:@]+)@/, ':****@')
