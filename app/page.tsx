@@ -14,17 +14,20 @@ async function getLatestShiurim() {
   try {
     // Check if DATABASE_URL is available
     if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL not configured for homepage')
       return []
     }
-    return await prisma.shiur.findMany({
+    const shiurim = await prisma.shiur.findMany({
       take: 9,
       orderBy: { pubDate: 'desc' },
       include: {
         platformLinks: true,
       },
     })
-  } catch (error) {
-    console.error('Error fetching shiurim:', error)
+    console.log(`Fetched ${shiurim.length} shiurim for homepage`)
+    return shiurim
+  } catch (error: any) {
+    console.error('Error fetching shiurim:', error?.message || error)
     return []
   }
 }

@@ -1,6 +1,8 @@
 import Header from '@/components/Header'
 import { ExternalLink, Play } from 'lucide-react'
 
+// Mark as dynamic to ensure data is fetched on each request
+export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour
 
 const TORAH_BOOKS = [
@@ -27,6 +29,7 @@ async function getPlaylists() {
     const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 
     if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'your-youtube-api-key-here') {
+      console.error('YouTube API key not configured for playlists page')
       return []
     }
 

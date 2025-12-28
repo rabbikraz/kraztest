@@ -15,6 +15,15 @@ async function isAuthenticated() {
 
 export async function GET() {
   try {
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      console.error('DATABASE_URL not configured')
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 500 }
+      )
+    }
+
     const shiurim = await prisma.shiur.findMany({
       orderBy: { pubDate: 'desc' },
       include: {
@@ -22,10 +31,10 @@ export async function GET() {
       },
     })
     return NextResponse.json(shiurim)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching shiurim:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error?.message || 'Internal server error' },
       { status: 500 }
     )
   }

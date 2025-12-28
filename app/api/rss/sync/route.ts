@@ -14,14 +14,12 @@ async function isAuthenticated() {
   return !!user
 }
 
-export async function POST(request: NextRequest) {
+// Allow GET for easier syncing, POST requires auth
+export async function GET(request: NextRequest) {
   try {
-    if (!(await isAuthenticated())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { feedUrl } = await request.json()
-    const url = feedUrl || process.env.RSS_FEED_URL
+    const { searchParams } = new URL(request.url)
+    const feedUrl = searchParams.get('feedUrl')
+    const url = feedUrl || process.env.RSS_FEED_URL || 'https://anchor.fm/s/d89491c4/podcast/rss'
 
     if (!url) {
       return NextResponse.json(
@@ -37,11 +35,46 @@ export async function POST(request: NextRequest) {
       synced: result.synced.length,
       errors: result.errors.length,
       total: result.total,
+      message: `Synced ${result.synced.length} of ${result.total} shiurim`,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error?.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    if (!(await isAuthenticated())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { feedUrl } = await request.json()
+    const url = feedUrl || process.env.RSS_FEED_URL || 'https://anchor.fm/s/d89491c4/podcast/rss'
+
+    if (!url) {
+      return NextResponse.json(
+        { error: 'RSS feed URL is required' },
+        { status: 400 }
+      )
+    }
+
+    const result = await syncRSSFeed(url)
+
+    return NextResponse.json({
+      success: true,
+      synced: result.synced.length,
+      errors: result.errors.length,
+      total: result.total,
+      message: `Synced ${result.synced.length} of ${result.total} shiurim`,
+    })
+  } catch (error: any) {
+    console.error('Error syncing RSS feed:', error)
+    return NextResponse.json(
+      { error: error?.message || 'Internal server error' },
       { status: 500 }
     )
   }

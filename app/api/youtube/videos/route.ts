@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   try {
     if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'your-youtube-api-key-here') {
+      console.error('YouTube API key not configured')
       return NextResponse.json(
         { error: 'YouTube API key not configured' },
         { status: 500 }

@@ -4,6 +4,8 @@ import { formatDate } from '@/lib/utils'
 import VideoFilters from '@/components/VideoFilters'
 import VideosGrid from '@/components/VideosGrid'
 
+// Mark as dynamic to ensure data is fetched on each request
+export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour
 
 async function getVideos() {
@@ -12,6 +14,7 @@ async function getVideos() {
     const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 
     if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === 'your-youtube-api-key-here') {
+      console.error('YouTube API key not configured for videos page')
       return []
     }
 
@@ -22,6 +25,8 @@ async function getVideos() {
     )
 
     if (!channelResponse.ok) {
+      const errorData = await channelResponse.json().catch(() => ({}))
+      console.error('Failed to fetch channel data:', errorData)
       return []
     }
 
@@ -29,6 +34,7 @@ async function getVideos() {
     const uploadsPlaylistId = channelData.items[0]?.contentDetails?.relatedPlaylists?.uploads
 
     if (!uploadsPlaylistId) {
+      console.error('Could not find uploads playlist ID')
       return []
     }
 
@@ -45,6 +51,8 @@ async function getVideos() {
       const videosResponse = await fetch(playlistUrl, { next: { revalidate: 3600 } })
       
       if (!videosResponse.ok) {
+        const errorData = await videosResponse.json().catch(() => ({}))
+        console.error('Failed to fetch videos from playlist:', errorData)
         break
       }
       
@@ -67,6 +75,8 @@ async function getVideos() {
       )
 
       if (!videoDetailsResponse.ok) {
+        const errorData = await videoDetailsResponse.json().catch(() => ({}))
+        console.error('Failed to fetch video details:', errorData)
         continue
       }
 
