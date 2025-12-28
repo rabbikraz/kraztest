@@ -131,12 +131,12 @@ rabbikraz/
 | `NEXT_PUBLIC_BASE_URL` | Public base URL | Optional |
 | `ADMIN_SETUP_TOKEN` | Secret token for one-time admin user creation (can be removed after setup) | Optional (for initial setup) |
 
-## Deployment to Netlify
+## Deployment to Cloudflare Pages
 
 ### Prerequisites
 
 1. A GitHub repository with your code
-2. A Netlify account
+2. A Cloudflare account
 3. A PostgreSQL database (recommended: [Supabase](https://supabase.com) or [Neon](https://neon.tech))
 
 ### Step-by-Step Deployment
@@ -149,37 +149,39 @@ rabbikraz/
 2. **Push your code to GitHub:**
    ```bash
    git add .
-   git commit -m "Prepare for Netlify deployment"
-   git push origin main
+   git commit -m "Prepare for Cloudflare Pages deployment"
+   git push origin master
    ```
 
-3. **Deploy to Netlify:**
-   - Go to [Netlify](https://app.netlify.com)
-   - Click "Add new site" → "Import an existing project"
+3. **Deploy to Cloudflare Pages:**
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
+   - Navigate to **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
    - Connect your GitHub repository
-   - Netlify will auto-detect Next.js settings
-   - **IMPORTANT:** In Site settings → Build & deploy → Build settings:
-     - Build command: `npm run build`
-     - Publish directory: Leave empty (handled by Next.js plugin)
-     - **Deploy command: Leave EMPTY** (do not set `npx wrangler deploy` or any other deploy command)
+   - Configure build settings:
+     - **Framework preset:** Next.js (Static HTML Export) or Custom
+     - **Build command:** `npm run build:cloudflare`
+     - **Build output directory:** `.vercel/output/static`
+     - **Root directory:** `./` (or leave empty)
+   - Click **Save and Deploy**
 
-4. **Configure Environment Variables in Netlify:**
-   - Go to Site settings → Environment variables
-   - Add the following variables:
+4. **Configure Environment Variables in Cloudflare:**
+   - Go to your Pages project → **Settings** → **Environment variables**
+   - Add the following variables for Production:
      ```
-     DATABASE_URL=postgresql://user:password@host:port/database?sslmode=require
-     NEXTAUTH_URL=https://your-site-name.netlify.app
-     NEXTAUTH_SECRET=generate-a-random-secret-string-here
+     NEXT_PUBLIC_SUPABASE_URL=https://tjywoiawsxrrepthgkqd.supabase.co
+     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_pRItmXYYLxWRHCyD0mMbqA_QdQIbqcS
+     YOUTUBE_API_KEY=AIzaSyDufIjgKWTjSY6e6YnLfuhHVC5dAwtJPLg
      RSS_FEED_URL=https://anchor.fm/s/d89491c4/podcast/rss
-     NEXT_PUBLIC_BASE_URL=https://your-site-name.netlify.app
-     YOUTUBE_API_KEY=your-youtube-api-key (optional)
+     NEXTAUTH_URL=https://your-site-name.pages.dev
+     NEXTAUTH_SECRET=generate-a-random-secret-string-here
+     NEXT_PUBLIC_BASE_URL=https://your-site-name.pages.dev
      ```
    - **Important:** Generate a secure random string for `NEXTAUTH_SECRET` (you can use: `openssl rand -base64 32`)
 
 5. **Create Admin User:**
    After the first deployment, create an admin user using the setup API endpoint:
    
-   **Step 1:** Add `ADMIN_SETUP_TOKEN` to your Netlify environment variables:
+   **Step 1:** Add `ADMIN_SETUP_TOKEN` to your Cloudflare environment variables:
    - Generate a secure random token (e.g., `openssl rand -base64 32`)
    - Add it as `ADMIN_SETUP_TOKEN` in Netlify environment variables
    
@@ -192,7 +194,7 @@ rabbikraz/
    ```
    
    Or use any HTTP client (Postman, Insomnia, etc.) with:
-   - URL: `https://your-site-name.netlify.app/api/admin/create-user`
+   - URL: `https://your-site-name.pages.dev/api/admin/create-user`
    - Method: POST
    - Headers: 
      - `Content-Type: application/json`
@@ -209,8 +211,8 @@ rabbikraz/
    **Step 3:** After creating your admin user, you can optionally remove the `ADMIN_SETUP_TOKEN` environment variable to disable this endpoint for security.
 
 6. **Trigger a new deployment:**
-   - After setting environment variables, go to Deploys → Trigger deploy → Deploy site
-   - The build will run migrations automatically
+   - After setting environment variables, go to **Deployments** → **Retry deployment** or push a new commit
+   - The build will run automatically on each push
 
 ### Post-Deployment Checklist
 
@@ -223,9 +225,9 @@ rabbikraz/
 ### Troubleshooting
 
 **Database connection errors:**
-- Ensure `DATABASE_URL` includes `?sslmode=require` for Supabase
-- Check that your database allows connections from Netlify's IP ranges
-- Verify the connection string is correct
+- Ensure connection string includes `?sslmode=require` for Supabase
+- Check that your database allows connections from Cloudflare's IP ranges
+- Verify the connection string is correct (uses pooler for serverless)
 
 **Admin login not working:**
 - Ensure you've created an admin user
@@ -233,9 +235,10 @@ rabbikraz/
 - Verify cookies are working (check browser console)
 
 **Build failures:**
-- Check build logs in Netlify dashboard
+- Check build logs in Cloudflare Pages dashboard
 - Ensure all environment variables are set
-- Verify Node.js version is 18 (set in netlify.toml)
+- Verify `@cloudflare/next-on-pages` is installed: `npm install --save-dev @cloudflare/next-on-pages`
+- Make sure build command is `npm run build:cloudflare`
 
 ## Contributing
 
