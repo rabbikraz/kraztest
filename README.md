@@ -158,6 +158,10 @@ rabbikraz/
    - Click "Add new site" → "Import an existing project"
    - Connect your GitHub repository
    - Netlify will auto-detect Next.js settings
+   - **IMPORTANT:** In Site settings → Build & deploy → Build settings:
+     - Build command: `npm run build`
+     - Publish directory: Leave empty (handled by Next.js plugin)
+     - **Deploy command: Leave EMPTY** (do not set `npx wrangler deploy` or any other deploy command)
 
 4. **Configure Environment Variables in Netlify:**
    - Go to Site settings → Environment variables

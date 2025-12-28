@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+  # Publish directory is handled by @netlify/plugin-nextjs
+  # DO NOT set a deploy command in Netlify dashboard - Next.js plugin handles deployment
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
