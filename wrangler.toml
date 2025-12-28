@@ -1,13 +1,14 @@
 # Cloudflare Pages configuration for Next.js
 # 
-# IMPORTANT: Change the deploy command in Cloudflare Pages dashboard to:
-#   npx wrangler pages deploy .next --project-name=rabbi-kraz-shiurim
-# 
-# Or use the script:
-#   bash deploy.sh
-#
-# Or BEST: Remove the deploy command entirely (Cloudflare auto-deploys)
+# NOTE: If deploy command is set to "npx wrangler deploy", this config makes it work
+# But the BEST solution is to change it to "npx wrangler pages deploy .next --project-name=rabbi-kraz-shiurim"
+# Or even better: Remove the deploy command entirely (Cloudflare auto-deploys)
 
 name = "rabbi-kraz-shiurim"
 compatibility_date = "2025-12-28"
+
+# Assets configuration for wrangler deploy (Workers mode)
+# This allows "npx wrangler deploy" to work by deploying static assets
+[assets]
+directory = ".next/static"
 
