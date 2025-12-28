@@ -25,6 +25,18 @@ async function getLatestShiurim() {
       },
     })
     console.log(`Fetched ${shiurim.length} shiurim for homepage`)
+    
+    // Auto-sync if no shiurim found (only once per deployment)
+    if (shiurim.length === 0) {
+      const { syncRSSFeed } = await import('@/lib/rss-parser')
+      const feedUrl = process.env.RSS_FEED_URL || 'https://anchor.fm/s/d89491c4/podcast/rss'
+      
+      // Run sync in background (don't block page load)
+      syncRSSFeed(feedUrl).catch((error) => {
+        console.error('Auto-sync failed:', error)
+      })
+    }
+    
     return shiurim
   } catch (error: any) {
     console.error('Error fetching shiurim:', error?.message || error)

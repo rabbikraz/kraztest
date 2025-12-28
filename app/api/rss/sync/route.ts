@@ -30,12 +30,18 @@ export async function GET(request: NextRequest) {
 
     const result = await syncRSSFeed(url)
 
+    // Log first few errors for debugging
+    if (result.errors.length > 0) {
+      console.error('Sync errors (first 5):', result.errors.slice(0, 5))
+    }
+
     return NextResponse.json({
       success: true,
       synced: result.synced.length,
       errors: result.errors.length,
       total: result.total,
       message: `Synced ${result.synced.length} of ${result.total} shiurim`,
+      errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
@@ -64,12 +70,18 @@ export async function POST(request: NextRequest) {
 
     const result = await syncRSSFeed(url)
 
+    // Log first few errors for debugging
+    if (result.errors.length > 0) {
+      console.error('Sync errors (first 5):', result.errors.slice(0, 5))
+    }
+
     return NextResponse.json({
       success: true,
       synced: result.synced.length,
       errors: result.errors.length,
       total: result.total,
       message: `Synced ${result.synced.length} of ${result.total} shiurim`,
+      errorDetails: result.errors.length > 0 ? result.errors.slice(0, 10) : undefined,
     })
   } catch (error: any) {
     console.error('Error syncing RSS feed:', error)
