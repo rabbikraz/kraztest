@@ -1,12 +1,16 @@
 # Cloudflare Pages configuration for Next.js
-# For Cloudflare Pages dashboard deployment, configure:
-# - Build command: npm run build:cloudflare
-# - Build output directory: .next
-# - Framework: Next.js
+# 
+# IMPORTANT: The deploy command in Cloudflare Pages dashboard should be EMPTY
+# Cloudflare Pages automatically deploys the build output from .next directory
+#
+# If deploy command is set, change it from "npx wrangler deploy" to:
+#   npm run deploy
+# Or better yet, REMOVE the deploy command entirely
 
 name = "rabbi-kraz-shiurim"
 compatibility_date = "2025-12-28"
 
-# Note: Cloudflare Pages with Next.js requires the Next.js runtime
-# The .next directory contains the built application
+# This configuration allows wrangler pages deploy to work
+# if a deploy command is mistakenly set in the dashboard
+pages_build_output_dir = ".next"
 
