@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 
-// Direct connection string (user provided)
-// Will be converted to pooler for serverless if needed
+// Direct connection string in Supabase format
+// Format: postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
 const FALLBACK_DATABASE_URL =
-  'postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres?sslmode=require'
+  'postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -76,20 +76,47 @@ function fixConnectionString() {
       if (params.toString()) newUrl += '?' + params.toString()
       process.env.DATABASE_URL = newUrl
     } else {
-      // For direct Supabase connections, ensure sslmode=require is present
-      // Use the connection string as-is, just add sslmode if missing
-      if (!dbUrl.includes('sslmode=')) {
-        const separator = dbUrl.includes('?') ? '&' : '?'
-        process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
-        console.log('✅ Added sslmode=require to connection string')
+      // For direct Supabase connections (port 5432), convert to pooler for serverless
+      // Serverless environments like Netlify need pooler connections
+      if (url.port === '5432' || !url.port) {
+        // Extract project ID from hostname (e.g., db.tjywoiawsxrrepthgkqd.supabase.co -> tjywoiawsxrrepthgkqd)
+        const hostnameMatch = host.match(/^db\.([^.]+)\.supabase\.(co|com)$/)
+        let extractedProjectId = hostnameMatch ? hostnameMatch[1] : null
+        
+        if (extractedProjectId && !projectId) {
+          projectId = extractedProjectId
+        }
+        
+        if (projectId) {
+          // Convert to pooler connection for serverless
+          const passwordMatch = dbUrl.match(/:\/\/[^:]+:([^@]+)@/)
+          const password = passwordMatch ? passwordMatch[1] : url.password
+          const path = url.pathname || '/postgres'
+          
+          // Use pooler connection format
+          // Format: postgresql://postgres.[PROJECT-REF]:[PASSWORD]@[PROJECT-REF].pooler.supabase.com:6543/postgres
+          const poolerHost = `${projectId}.pooler.supabase.com`
+          const poolerPort = '6543'
+          
+          const params = new URLSearchParams()
+          params.set('sslmode', 'require')
+          params.set('pgbouncer', 'true')
+          
+          const poolerUrl = `postgresql://postgres.${projectId}:${password}@${poolerHost}:${poolerPort}${path}?${params.toString()}`
+          process.env.DATABASE_URL = poolerUrl
+          console.log('🔄 Converted direct connection to pooler for serverless:', poolerHost)
+        } else {
+          // Can't extract project ID, just add sslmode=require
+          const separator = dbUrl.includes('?') ? '&' : '?'
+          process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
+          console.log('✅ Added sslmode=require to connection string')
+        }
       } else {
-        // sslmode already present, ensure it's set to require
-        const sslmodeMatch = dbUrl.match(/[?&]sslmode=([^&]*)/)
-        if (sslmodeMatch && sslmodeMatch[1] !== 'require') {
-          process.env.DATABASE_URL = dbUrl.replace(/[?&]sslmode=[^&]*/, (match) => {
-            return match.startsWith('?') ? '?sslmode=require' : '&sslmode=require'
-          })
-          console.log('✅ Updated sslmode to require')
+        // Not a direct connection, just ensure sslmode=require
+        if (!dbUrl.includes('sslmode=')) {
+          const separator = dbUrl.includes('?') ? '&' : '?'
+          process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
+          console.log('✅ Added sslmode=require to connection string')
         }
       }
     }
