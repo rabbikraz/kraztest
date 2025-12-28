@@ -99,6 +99,21 @@ export default function ConfigurePage() {
                       </code>
                     </div>
 
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3">
+                      <p className="text-sm text-purple-900 font-medium mb-2">
+                        🚀 Quick Format Helper:
+                      </p>
+                      <p className="text-xs text-purple-800 mb-3">
+                        If you already have your connection string, use our helper to format it correctly:
+                      </p>
+                      <a
+                        href="/format-db-url"
+                        className="inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      >
+                        Format My Connection String →
+                      </a>
+                    </div>
+
                     <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
                       <p className="text-sm text-yellow-800 font-medium mb-2">
                         ⚠️ CRITICAL STEPS:
