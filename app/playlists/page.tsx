@@ -102,6 +102,11 @@ export default async function PlaylistsPage() {
         {playlists.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
             <p className="text-gray-600 mb-4">No playlists available at the moment.</p>
+            <p className="text-sm text-gray-500 mb-4">
+              {!process.env.YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY === 'your-youtube-api-key-here' 
+                ? 'YouTube API key not configured. Please set YOUTUBE_API_KEY in your environment variables.'
+                : 'This could be due to API rate limits or network issues.'}
+            </p>
             <a
               href="https://www.youtube.com/@RabbiKraz/playlists"
               target="_blank"

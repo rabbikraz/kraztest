@@ -55,8 +55,24 @@ export default async function Home() {
               Latest Shiurim
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shiurim.map((shiur) => (
+          {shiurim.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
+              <p className="text-gray-600 mb-4">No shiurim available yet.</p>
+              <p className="text-sm text-gray-500 mb-4">
+                To sync shiurim from the RSS feed, visit: <code className="bg-gray-100 px-2 py-1 rounded">/api/rss/sync</code>
+              </p>
+              <a
+                href="/api/rss/sync"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary hover:underline"
+              >
+                Sync RSS Feed
+              </a>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {shiurim.map((shiur) => (
               <div
                 key={shiur.id}
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col h-full group"
@@ -95,8 +111,9 @@ export default async function Home() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="max-w-2xl mx-auto text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100">

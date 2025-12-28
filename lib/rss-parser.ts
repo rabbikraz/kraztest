@@ -96,8 +96,24 @@ export async function fetchRSSFeed(feedUrl: string): Promise<RSSItem[]> {
       // Extract blurb
       const blurb = extractBlurb(descriptionText)
       
+      // Handle guid - rss-parser should return it as string, but be safe
+      let guid: string = ''
+      if (typeof item.guid === 'string') {
+        guid = item.guid
+      } else if (item.guid && typeof item.guid === 'object') {
+        // Handle if it's an object (shouldn't happen with rss-parser, but be safe)
+        guid = (item.guid as any).$?.text || (item.guid as any)._ || String(item.guid)
+      }
+      guid = guid || item.id || item.link || ''
+      
+      // Ensure we have a valid GUID
+      if (!guid) {
+        console.warn('No GUID found for item:', item.title)
+        guid = `temp-${Date.now()}-${Math.random()}`
+      }
+      
       return {
-        guid: item.guid || item.id || item.link || '',
+        guid: String(guid),
         title: item.title || '',
         description: fullDescription || descriptionText,
         audioUrl,
