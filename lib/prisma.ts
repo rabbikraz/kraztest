@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 
+// Use pooler connection by default for serverless environments
+// Project ID: tjywoiawsxrrepthgkqd (extracted from db.tjywoiawsxrrepthgkqd.supabase.co)
 const FALLBACK_DATABASE_URL =
-  'postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres?sslmode=require'
+  'postgresql://postgres.tjywoiawsxrrepthgkqd:93mMKqR8xfQ3jPM!@tjywoiawsxrrepthgkqd.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -76,16 +78,22 @@ function fixConnectionString() {
     } else {
       // For direct Supabase connections (port 5432), convert to pooler for serverless
       // Extract project ID from hostname (e.g., db.tjywoiawsxrrepthgkqd.supabase.co -> tjywoiawsxrrepthgkqd)
-      const hostnameMatch = dbUrl.match(/@([^.]+)\.supabase\.(co|com)/)
-      let extractedProjectId = hostnameMatch ? hostnameMatch[1].replace('db.', '') : null
+      const hostnameMatch = dbUrl.match(/@([^@]+)\.supabase\.(co|com)/)
+      let extractedProjectId = null
+      
+      if (hostnameMatch) {
+        const hostname = hostnameMatch[1]
+        // Remove 'db.' prefix if present
+        extractedProjectId = hostname.replace(/^db\./, '')
+      }
       
       if (extractedProjectId && !projectId) {
         projectId = extractedProjectId
       }
       
-      // For serverless environments (like Netlify), use connection pooler
+      // For serverless environments (like Netlify), always use connection pooler
       // Pooler is more reliable and handles connection limits better
-      if (projectId && url.port === '5432') {
+      if (projectId && (url.port === '5432' || !url.port || url.port === '')) {
         // Convert to pooler connection
         // Extract password from original URL to preserve special characters
         const passwordMatch = dbUrl.match(/:\/\/[^:]+:([^@]+)@/)
@@ -94,7 +102,7 @@ function fixConnectionString() {
         // Supabase pooler format: {project-id}.pooler.supabase.com
         const poolerHost = `${projectId}.pooler.supabase.com`
         const poolerPort = '6543'
-        const path = url.pathname
+        const path = url.pathname || '/postgres'
         
         const params = new URLSearchParams()
         params.set('sslmode', 'require')
@@ -102,8 +110,13 @@ function fixConnectionString() {
         
         const poolerUrl = `postgresql://postgres.${projectId}:${password}@${poolerHost}:${poolerPort}${path}?${params.toString()}`
         process.env.DATABASE_URL = poolerUrl
+        console.log('🔄 Converted direct connection to pooler:', poolerHost)
+      } else if (!projectId) {
+        // If we can't extract project ID, just ensure sslmode=require
+        const separator = dbUrl.includes('?') ? '&' : '?'
+        process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
       } else {
-        // Keep direct connection but ensure sslmode=require
+        // Already using pooler or other connection, just ensure sslmode=require
         const separator = dbUrl.includes('?') ? '&' : '?'
         process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
       }
@@ -126,10 +139,9 @@ fixConnectionString()
 const finalDatabaseUrl = process.env.DATABASE_URL || FALLBACK_DATABASE_URL
 
 // Log connection string (mask password for security)
-if (process.env.NODE_ENV === 'development') {
-  const maskedUrl = finalDatabaseUrl.replace(/:([^:@]+)@/, ':****@')
-  console.log('🔌 Database connection string:', maskedUrl)
-}
+const maskedUrl = finalDatabaseUrl.replace(/:([^:@]+)@/, ':****@')
+console.log('🔌 Database connection string:', maskedUrl)
+console.log('🔌 Using pooler:', finalDatabaseUrl.includes('pooler'))
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   datasources: {
