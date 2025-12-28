@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getYouTubeApiKey } from '@/lib/youtube-config'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  const youtubeApiKey = getYouTubeApiKey()
   const diagnostics: any = {
     timestamp: new Date().toISOString(),
     environment: {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasYoutubeApiKey: !!process.env.YOUTUBE_API_KEY && process.env.YOUTUBE_API_KEY !== 'your-youtube-api-key-here',
+      hasYoutubeApiKey: !!youtubeApiKey,
       hasRssFeedUrl: !!process.env.RSS_FEED_URL,
-      youtubeApiKeySet: process.env.YOUTUBE_API_KEY ? 'SET' : 'NOT SET',
+      youtubeApiKeySet: youtubeApiKey ? 'SET' : 'NOT SET',
     },
     database: {
       connected: false,

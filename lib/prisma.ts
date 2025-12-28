@@ -28,52 +28,64 @@ function fixConnectionString() {
   }
   
   try {
+    // Check if it's a Supabase connection
+    const isSupabase = dbUrl.includes('supabase.co') || dbUrl.includes('supabase.com')
+    
+    if (!isSupabase) return
+    
+    // Check if sslmode is already present
+    if (dbUrl.includes('sslmode=')) {
+      // sslmode already present, but ensure it's set to require
+      const sslmodeMatch = dbUrl.match(/[?&]sslmode=([^&]*)/)
+      if (sslmodeMatch && sslmodeMatch[1] !== 'require') {
+        // Replace existing sslmode value with require
+        process.env.DATABASE_URL = dbUrl.replace(/[?&]sslmode=[^&]*/, (match) => {
+          return match.startsWith('?') ? '?sslmode=require' : '&sslmode=require'
+        })
+      }
+      return
+    }
+    
+    // Parse the connection string for pooler detection
     const url = new URL(dbUrl.replace(/^postgresql?:\/\//, 'https://'))
     const host = url.hostname
-    const isSupabase = host.includes('supabase.co') || host.includes('supabase.com')
     const isPooler = url.port === '6543' || host.includes('pooler')
     
     // Fix username for pooler
     if (isPooler && projectId && !url.username.includes('.')) {
+      // Extract existing query parameters
+      const params = new URLSearchParams()
+      if (url.search) {
+        url.search.slice(1).split('&').forEach(param => {
+          const [key, value] = param.split('=')
+          if (key) params.set(key, decodeURIComponent(value || ''))
+        })
+      }
+      
+      // Add required params for pooler
+      if (!params.has('pgbouncer')) params.set('pgbouncer', 'true')
+      if (!params.has('sslmode')) params.set('sslmode', 'require')
+      
       const password = url.password
       const port = url.port || '6543'
       const path = url.pathname
       
       let newUrl = `postgresql://postgres.${projectId}:${password}@${host}:${port}${path}`
-      
-      // Add required params
-      const params = new URLSearchParams()
-      if (url.search) {
-        url.search.slice(1).split('&').forEach(param => {
-          const [key, value] = param.split('=')
-          if (key) params.set(key, value || '')
-        })
-      }
-      if (!params.has('pgbouncer')) params.set('pgbouncer', 'true')
-      if (!params.has('sslmode') && isSupabase) {
-        params.set('sslmode', 'require')
-      }
-      
       if (params.toString()) newUrl += '?' + params.toString()
       process.env.DATABASE_URL = newUrl
-    } else if (isSupabase && !url.search.includes('sslmode')) {
-      // For direct Supabase connections (port 5432), ensure sslmode=require is present
-      const params = new URLSearchParams()
-      if (url.search) {
-        url.search.slice(1).split('&').forEach(param => {
-          const [key, value] = param.split('=')
-          if (key) params.set(key, value || '')
-        })
-      }
-      if (!params.has('sslmode')) {
-        params.set('sslmode', 'require')
-      }
-      
-      const newUrl = dbUrl.split('?')[0] + (params.toString() ? '?' + params.toString() : '')
-      process.env.DATABASE_URL = newUrl
+    } else {
+      // For direct Supabase connections, simply append sslmode=require
+      const separator = dbUrl.includes('?') ? '&' : '?'
+      process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
     }
   } catch (e) {
-    // Ignore parsing errors
+    // If parsing fails, try to add sslmode=require directly
+    if (dbUrl.includes('supabase.co') || dbUrl.includes('supabase.com')) {
+      if (!dbUrl.includes('sslmode=')) {
+        const separator = dbUrl.includes('?') ? '&' : '?'
+        process.env.DATABASE_URL = `${dbUrl}${separator}sslmode=require`
+      }
+    }
   }
 }
 
