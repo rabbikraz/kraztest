@@ -1,18 +1,13 @@
 # Cloudflare Pages configuration for Next.js
 # 
-# IMPORTANT: The deploy command in Cloudflare Pages dashboard should be EMPTY
-# Cloudflare Pages automatically deploys the build output from .next directory
+# IMPORTANT: Change the deploy command in Cloudflare Pages dashboard to:
+#   npx wrangler pages deploy .next --project-name=rabbi-kraz-shiurim
+# 
+# Or use the script:
+#   bash deploy.sh
 #
-# If deploy command is set to "npx wrangler deploy", it will now work
-# But the BEST solution is to REMOVE the deploy command entirely
-# Or change it to "npm run deploy" to use the proper Pages deployment
+# Or BEST: Remove the deploy command entirely (Cloudflare auto-deploys)
 
 name = "rabbi-kraz-shiurim"
 compatibility_date = "2025-12-28"
-
-# Worker entry point (only needed if deploy command uses "npx wrangler deploy")
-main = "src/index.ts"
-
-# Pages configuration (for proper Pages deployment)
-pages_build_output_dir = ".next"
 
