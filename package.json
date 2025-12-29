@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "build:cloudflare": "prisma generate && next build && node scripts/post-build.js",
-    "postbuild": "node scripts/post-build.js",
+    "build:cloudflare": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
