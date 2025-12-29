@@ -1,11 +1,10 @@
-# Cloudflare Pages configuration for Next.js
+# Cloudflare Pages Configuration
 # 
-# IMPORTANT: Configure Cloudflare Pages with:
+# IMPORTANT: In Cloudflare Pages dashboard:
 # - Framework preset: Next.js
-# - Build command: npm run build:cloudflare
+# - Build command: npm run build
 # - Build output directory: .next
-# - Deploy command: LEAVE EMPTY (Cloudflare handles Next.js automatically)
+# - Deploy command: LEAVE EMPTY
 
 name = "kraztest"
 compatibility_date = "2025-12-28"
-

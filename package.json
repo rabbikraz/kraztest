@@ -1,24 +1,17 @@
 {
   "name": "rabbi-kraz-shiurim",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "build:cloudflare": "prisma generate && next build",
-    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "bash deploy.sh",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio",
-    "create-admin": "node scripts/create-admin.js",
-    "verify-env": "node scripts/verify-env.js",
-    "verify-env:prod": "NODE_ENV=production node scripts/verify-env.js --production",
-    "sync-rss": "node scripts/sync-rss.js",
-    "clean": "rm -rf .next node_modules/.cache"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
@@ -56,4 +49,3 @@
     "typescript": "^5.3.3"
   }
 }
-

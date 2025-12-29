@@ -3,16 +3,11 @@ const nextConfig = {
   reactStrictMode: true,
   
   // Cloudflare Pages configuration
-  // Cloudflare Pages automatically handles Next.js when framework preset is set to "Next.js"
+  // When Framework preset is set to "Next.js" in Cloudflare, this works automatically
   
-  // Ensure proper image optimization
   images: {
     unoptimized: false,
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.supabase.co',
-      },
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
@@ -24,12 +19,9 @@ const nextConfig = {
     ],
   },
   
-  // Experimental features for better Cloudflare compatibility
   experimental: {
-    // Enable server components
     serverComponentsExternalPackages: ['@prisma/client'],
   },
 }
 
 module.exports = nextConfig
-
