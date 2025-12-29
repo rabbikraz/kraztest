@@ -1,11 +1,16 @@
+// Cloudflare Pages specific Next.js configuration
+// This file is for reference - the main next.config.js should be used
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   
-  // Cloudflare Pages configuration
-  // Cloudflare Pages automatically handles Next.js when framework preset is set to "Next.js"
+  // For Cloudflare Pages:
+  // - Framework preset MUST be set to "Next.js" in Cloudflare dashboard
+  // - Build output directory: .next
+  // - Deploy command: EMPTY (Cloudflare handles it automatically)
   
-  // Ensure proper image optimization
+  // Image optimization
   images: {
     unoptimized: false,
     remotePatterns: [
@@ -24,9 +29,8 @@ const nextConfig = {
     ],
   },
   
-  // Experimental features for better Cloudflare compatibility
+  // Server components external packages
   experimental: {
-    // Enable server components
     serverComponentsExternalPackages: ['@prisma/client'],
   },
 }

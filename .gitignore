@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+.yarn/install-state.gz
 
 # testing
 /coverage
@@ -36,19 +37,20 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
-/dev.db
-/dev.db-journal
-prisma/dev.db
-prisma/dev.db-journal
 *.db
 *.db-journal
 
-# embedded git repository
-/rabbikraz.github.io
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
 
-# netlify
-.netlify
+# OS
+.DS_Store
+Thumbs.db
 
-# Sensitive files
-*.txt
-!README.txt
+# Cloudflare
+.wrangler
+.dev.vars

@@ -1,0 +1,30 @@
+NETLIFY ENVIRONMENT VARIABLES SETUP
+=====================================
+
+Copy these values and set them in your Netlify dashboard:
+
+1. NEXT_PUBLIC_SUPABASE_URL
+   https://tjywoiawsxrrepthgkqd.supabase.co
+
+2. NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+   sb_publishable_pRItmXYYLxWRHCyD0mMbqA_QdQIbqcS
+
+3. YOUTUBE_API_KEY
+   AIzaSyDufIjgKWTjSY6e6YnLfuhHVC5dAwtJPLg
+
+4. RSS_FEED_URL (if not already set)
+   https://anchor.fm/s/d89491c4/podcast/rss
+
+INSTRUCTIONS:
+1. Go to https://app.netlify.com
+2. Select your site
+3. Go to: Site settings → Environment variables
+4. Click "Add a variable" for each one above
+5. Copy the Key and Value exactly as shown
+6. Click "Save"
+7. Go to Deploys → Trigger deploy → Deploy site
+
+After deployment:
+- Visit /api/setup-db (creates tables)
+- Visit /api/rss/sync (syncs shiurim)
+

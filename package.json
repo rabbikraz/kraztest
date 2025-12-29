@@ -17,7 +17,8 @@
     "create-admin": "node scripts/create-admin.js",
     "verify-env": "node scripts/verify-env.js",
     "verify-env:prod": "NODE_ENV=production node scripts/verify-env.js --production",
-    "sync-rss": "node scripts/sync-rss.js"
+    "sync-rss": "node scripts/sync-rss.js",
+    "clean": "rm -rf .next node_modules/.cache"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",

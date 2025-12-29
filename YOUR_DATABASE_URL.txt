@@ -1,0 +1,19 @@
+YOUR COMPLETE DATABASE_URL (Copy this exactly):
+
+postgresql://postgres:93mMKqR8xfQ3jPM!@db.tjywoiawsxrrepthgkqd.supabase.co:5432/postgres
+
+INSTRUCTIONS:
+1. Copy the connection string above
+2. Go to https://app.netlify.com
+3. Select your site
+4. Go to: Site settings → Environment variables
+5. Click "Add a variable"
+6. Key: DATABASE_URL
+7. Value: Paste the connection string above
+8. Click "Save"
+9. Go to Deploys tab → Click "Trigger deploy" → "Deploy site"
+10. After deployment completes, visit: /api/setup-db
+11. Then visit: /api/rss/sync
+
+That's it! Your 193 shiurim will sync automatically.
+
