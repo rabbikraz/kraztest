@@ -25,8 +25,12 @@ try {
 }
 
 // Find the actual Next.js static chunks
-let mainJsPath = '/_next/static/chunks/main-app.js';
-let webpackRuntimePath = '/_next/static/chunks/webpack.js';
+let mainJsPath = null;
+let webpackRuntimePath = null;
+let frameworkPath = null;
+let polyfillsPath = null;
+let mainPath = null;
+let cssPath = null;
 
 try {
   // Try to find the actual chunk files
@@ -34,7 +38,10 @@ try {
   if (fs.existsSync(chunksDir)) {
     const files = fs.readdirSync(chunksDir);
     const mainAppFile = files.find(f => f.includes('main-app'));
-    const webpackFile = files.find(f => f.includes('webpack'));
+    const webpackFile = files.find(f => f.includes('webpack') && !f.includes('runtime'));
+    const frameworkFile = files.find(f => f.includes('framework'));
+    const polyfillsFile = files.find(f => f.includes('polyfills'));
+    const mainFile = files.find(f => f.startsWith('main-') && !f.includes('app'));
     
     if (mainAppFile) {
       mainJsPath = `/_next/static/chunks/${mainAppFile}`;
@@ -42,13 +49,48 @@ try {
     if (webpackFile) {
       webpackRuntimePath = `/_next/static/chunks/${webpackFile}`;
     }
+    if (frameworkFile) {
+      frameworkPath = `/_next/static/chunks/${frameworkFile}`;
+    }
+    if (polyfillsFile) {
+      polyfillsPath = `/_next/static/chunks/${polyfillsFile}`;
+    }
+    if (mainFile) {
+      mainPath = `/_next/static/chunks/${mainFile}`;
+    }
+  }
+  
+  // Find CSS file
+  const cssDir = path.join(buildDir, 'static', 'css');
+  if (fs.existsSync(cssDir)) {
+    const cssFiles = fs.readdirSync(cssDir);
+    if (cssFiles.length > 0) {
+      cssPath = `/_next/static/css/${cssFiles[0]}`;
+    }
   }
 } catch (e) {
   console.warn('Could not find chunk files, using defaults');
 }
 
+// Check if there's a pre-rendered HTML file we can use
+let prerenderedHtml = null;
+try {
+  const serverAppDir = path.join(buildDir, 'server', 'app');
+  const pageHtmlPath = path.join(serverAppDir, 'page.js');
+  // Next.js doesn't generate static HTML for dynamic pages, so we'll create one
+} catch (e) {
+  // No pre-rendered HTML found
+}
+
 // Create a proper index.html that loads the Next.js app
 // This is needed for Cloudflare Pages to serve the application
+const scripts = [];
+if (polyfillsPath) scripts.push(`<script src="${polyfillsPath}"></script>`);
+if (webpackRuntimePath) scripts.push(`<script src="${webpackRuntimePath}"></script>`);
+if (frameworkPath) scripts.push(`<script src="${frameworkPath}"></script>`);
+if (mainPath) scripts.push(`<script src="${mainPath}"></script>`);
+if (mainJsPath) scripts.push(`<script src="${mainJsPath}"></script>`);
+
 const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,6 +101,7 @@ const indexHtml = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  ${cssPath ? `<link rel="stylesheet" href="${cssPath}" />` : ''}
   <style>
     body {
       margin: 0;
@@ -84,13 +127,10 @@ const indexHtml = `<!DOCTYPE html>
   <div id="__next">
     <div class="loading">Loading...</div>
   </div>
+  ${scripts.join('\n  ')}
   <script>
-    // Next.js will hydrate this
-    // Load the Next.js runtime and main app
-    (function() {
-      // The Next.js app will be loaded by the framework
-      // This placeholder ensures Cloudflare Pages can serve the file
-    })();
+    // Next.js will hydrate the app
+    // The scripts above will load the Next.js runtime
   </script>
 </body>
 </html>`;
